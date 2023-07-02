@@ -1,5 +1,6 @@
 package dev.piotrulla.vouchers;
 
+import dev.piotrulla.vouchers.config.ConfigService;
 import dev.piotrulla.vouchers.money.MoneyService;
 import dev.piotrulla.vouchers.util.ItemUtil;
 import org.bukkit.entity.Player;
@@ -8,10 +9,12 @@ import org.bukkit.inventory.ItemStack;
 public class VoucherService {
 
     private final VoucherDataConfig dataConfig;
+    private final ConfigService configService;
     private final MoneyService moneyService;
 
-    public VoucherService(VoucherDataConfig dataConfig, MoneyService moneyService) {
+    public VoucherService(VoucherDataConfig dataConfig, ConfigService configService, MoneyService moneyService) {
         this.dataConfig = dataConfig;
+        this.configService = configService;
         this.moneyService = moneyService;
     }
 
@@ -19,6 +22,7 @@ public class VoucherService {
         this.removeItemInHand(player);
 
         this.dataConfig.addUsedVoucher();
+        this.configService.save(this.dataConfig);
 
         voucher.commands().forEach(command -> {
             String formattedCommand = command.replace("{PLAYER}", player.getName());

@@ -57,7 +57,7 @@ public class VoucherPlugin extends JavaPlugin {
 
         this.moneyService = this.bridgeService.borrowMoneyService();
 
-        this.voucherService = new VoucherService(this.data, this.moneyService);
+        this.voucherService = new VoucherService(this.data, configService, this.moneyService);
 
         this.audienceProvider = BukkitAudiences.create(this);
         this.miniMessage = MiniMessage.builder()
