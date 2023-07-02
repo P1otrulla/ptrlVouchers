@@ -7,14 +7,18 @@ import org.bukkit.inventory.ItemStack;
 
 public class VoucherService {
 
+    private final VoucherDataConfig dataConfig;
     private final MoneyService moneyService;
 
-    public VoucherService(MoneyService moneyService) {
+    public VoucherService(VoucherDataConfig dataConfig, MoneyService moneyService) {
+        this.dataConfig = dataConfig;
         this.moneyService = moneyService;
     }
 
     public void giveVoucher(Player player, Voucher voucher) {
         this.removeItemInHand(player);
+
+        this.dataConfig.addUsedVoucher();
 
         voucher.commands().forEach(command -> {
             String formattedCommand = command.replace("{PLAYER}", player.getName());

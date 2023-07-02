@@ -45,6 +45,9 @@ dependencies {
 
     // Economy
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
+
+    // bStats
+    implementation("org.bstats:bstats-bukkit:3.0.0")
 }
 
 bukkit {

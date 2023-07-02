@@ -19,6 +19,8 @@ import dev.rollczi.litecommands.schematic.Schematic;
 import net.kyori.adventure.platform.AudienceProvider;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bstats.bukkit.Metrics;
+import org.bstats.charts.SingleLineChart;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -27,6 +29,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class VoucherPlugin extends JavaPlugin {
 
     private ConfigService configService;
+    private VoucherDataConfig data;
     private VoucherConfig config;
 
     private BridgeService bridgeService;
@@ -44,6 +47,7 @@ public class VoucherPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         this.configService = new ConfigService(this.getDataFolder());
+        this.data = this.configService.load(new VoucherDataConfig());
         this.config = this.configService.load(new VoucherConfig());
 
         Server server = this.getServer();
@@ -53,7 +57,7 @@ public class VoucherPlugin extends JavaPlugin {
 
         this.moneyService = this.bridgeService.borrowMoneyService();
 
-        this.voucherService = new VoucherService(this.moneyService);
+        this.voucherService = new VoucherService(this.data, this.moneyService);
 
         this.audienceProvider = BukkitAudiences.create(this);
         this.miniMessage = MiniMessage.builder()
@@ -77,6 +81,11 @@ public class VoucherPlugin extends JavaPlugin {
                 .commandInstance(new VoucherCommand(this.broadcaster, this.config, this.config))
 
                 .register();
+
+        Metrics metrics = new Metrics(this, 18960);
+
+        metrics.addCustomChart(new SingleLineChart("used_vouchers", data::getUsedVouchers));
+        metrics.addCustomChart(new SingleLineChart("total_vouchers", () -> this.config.vouchers.size()));
     }
 
     @Override

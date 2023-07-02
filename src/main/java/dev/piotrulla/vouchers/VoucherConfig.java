@@ -3,6 +3,7 @@ package dev.piotrulla.vouchers;
 import com.google.common.collect.ImmutableMap;
 import dev.piotrulla.vouchers.config.ReloadableConfig;
 import dev.piotrulla.vouchers.notification.Notification;
+import net.dzikoysk.cdn.entity.Description;
 import net.dzikoysk.cdn.source.Resource;
 import net.dzikoysk.cdn.source.Source;
 import org.bukkit.inventory.ItemStack;
@@ -18,6 +19,7 @@ public class VoucherConfig implements ReloadableConfig, VoucherRepository {
         "default", new Voucher()
     );
 
+    @Description({ "", "# Messages" })
     public Notification invalidAmount = Notification.chat("&4Blad:︎ &cPodana ilość jest nieprawidłowa!");
     public Notification playerNotFound = Notification.chat("&4Blad:︎ &cNie znaleziono takiego gracza!");
     public Notification noPermission = Notification.chat("&cObawiam się kolego, że nie masz uprawnień! &f({PERMISSION})");
