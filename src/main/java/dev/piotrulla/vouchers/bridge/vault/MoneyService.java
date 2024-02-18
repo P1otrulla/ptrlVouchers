@@ -1,4 +1,4 @@
-package dev.piotrulla.vouchers.money;
+package dev.piotrulla.vouchers.bridge.vault;
 
 import org.bukkit.entity.Player;
 
