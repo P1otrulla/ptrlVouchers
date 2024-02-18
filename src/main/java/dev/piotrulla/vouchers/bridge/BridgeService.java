@@ -1,7 +1,7 @@
 package dev.piotrulla.vouchers.bridge;
 
 import dev.piotrulla.vouchers.bridge.vault.VaultMoneyService;
-import dev.piotrulla.vouchers.money.MoneyService;
+import dev.piotrulla.vouchers.bridge.vault.MoneyService;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;

@@ -7,9 +7,11 @@ import dev.piotrulla.vouchers.command.handler.InvalidUsageHandler;
 import dev.piotrulla.vouchers.command.handler.NotificationHandler;
 import dev.piotrulla.vouchers.command.handler.PermissionHandler;
 import dev.piotrulla.vouchers.config.ConfigService;
-import dev.piotrulla.vouchers.money.MoneyService;
+import dev.piotrulla.vouchers.bridge.vault.MoneyService;
 import dev.piotrulla.vouchers.notification.Notification;
 import dev.piotrulla.vouchers.notification.NotificationBroadcaster;
+import dev.piotrulla.vouchers.updater.UpdaterController;
+import dev.piotrulla.vouchers.updater.UpdaterService;
 import dev.piotrulla.vouchers.util.legacy.LegacyColorProcessor;
 import dev.rollczi.litecommands.LiteCommands;
 import dev.rollczi.litecommands.bukkit.LiteBukkitFactory;
@@ -32,6 +34,8 @@ public class VoucherPlugin extends JavaPlugin {
     private VoucherDataConfig data;
     private VoucherConfig config;
 
+    private UpdaterService updaterService;
+
     private BridgeService bridgeService;
     private MoneyService moneyService;
 
@@ -52,12 +56,14 @@ public class VoucherPlugin extends JavaPlugin {
 
         Server server = this.getServer();
 
+        this.updaterService = new UpdaterService(this.getDescription());
+
         this.bridgeService = new BridgeService(server.getServicesManager(), server.getPluginManager(), this.moneyService);
         this.bridgeService.init();
 
         this.moneyService = this.bridgeService.borrowMoneyService();
 
-        this.voucherService = new VoucherService(this.data, configService, this.moneyService);
+        this.voucherService = new VoucherService(this.data, this.configService, this.moneyService);
 
         this.audienceProvider = BukkitAudiences.create(this);
         this.miniMessage = MiniMessage.builder()
@@ -67,6 +73,10 @@ public class VoucherPlugin extends JavaPlugin {
         this.broadcaster = new NotificationBroadcaster(this.audienceProvider, this.miniMessage);
 
         server.getPluginManager().registerEvents(new VoucherController(this.broadcaster, this.config, this.voucherService, this.config), this);
+
+        if (this.config.reciveUpdateOnJoin) {
+            server.getPluginManager().registerEvents(new UpdaterController(this.broadcaster, this.updaterService), this);
+        }
 
         this.liteCommands = LiteBukkitFactory.builder(server, "vouchers")
                 .resultHandler(Notification.class, new NotificationHandler(this.broadcaster))
@@ -84,8 +94,25 @@ public class VoucherPlugin extends JavaPlugin {
 
         Metrics metrics = new Metrics(this, 18960);
 
-        metrics.addCustomChart(new SingleLineChart("used_vouchers", data::getUsedVouchers));
+        metrics.addCustomChart(new SingleLineChart("used_vouchers", this.data::getUsedVouchers));
         metrics.addCustomChart(new SingleLineChart("total_vouchers", () -> this.config.vouchers.size()));
+
+        this.updaterService.isUpToDate().whenComplete((state, throwable) -> {
+            if (throwable != null) {
+                throwable.printStackTrace();
+                return;
+            }
+
+            if (state) {
+                return;
+            }
+
+            this.getLogger().warning(" ");
+            this.getLogger().warning("ptrlVouchers has an update available!");
+            this.getLogger().warning("Download the latest version from:");
+            this.getLogger().warning("https://github.com/P1otrulla/ptrlVouchers/releases/latest");
+            this.getLogger().warning(" ");
+        });
     }
 
     @Override
@@ -93,4 +120,47 @@ public class VoucherPlugin extends JavaPlugin {
         this.liteCommands.getPlatform().unregisterAll();
     }
 
+    public VoucherService getVoucherService() {
+        return this.voucherService;
+    }
+
+    public VoucherConfig getVoucherConfig() {
+        return this.config;
+    }
+
+    public VoucherDataConfig getVoucherDataConfig() {
+        return this.data;
+    }
+
+    public ConfigService getConfigService() {
+        return this.configService;
+    }
+
+    public NotificationBroadcaster getNotificationBroadcaster() {
+        return this.broadcaster;
+    }
+
+    public AudienceProvider getAudienceProvider() {
+        return this.audienceProvider;
+    }
+
+    public MiniMessage getMiniMessage() {
+        return this.miniMessage;
+    }
+
+    public LiteCommands<CommandSender> getLiteCommands() {
+        return this.liteCommands;
+    }
+
+    public BridgeService getBridgeService() {
+        return this.bridgeService;
+    }
+
+    public MoneyService getMoneyService() {
+        return this.moneyService;
+    }
+
+    public UpdaterService getUpdaterService() {
+        return this.updaterService;
+    }
 }

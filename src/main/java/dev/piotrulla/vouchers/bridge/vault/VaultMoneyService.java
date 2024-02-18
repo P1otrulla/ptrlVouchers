@@ -1,6 +1,5 @@
 package dev.piotrulla.vouchers.bridge.vault;
 
-import dev.piotrulla.vouchers.money.MoneyService;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.entity.Player;
 

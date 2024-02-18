@@ -1,8 +1,9 @@
 package dev.piotrulla.vouchers;
 
 import dev.piotrulla.vouchers.config.ConfigService;
-import dev.piotrulla.vouchers.money.MoneyService;
+import dev.piotrulla.vouchers.bridge.vault.MoneyService;
 import dev.piotrulla.vouchers.util.ItemUtil;
+import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -27,7 +28,9 @@ public class VoucherService {
         voucher.commands().forEach(command -> {
             String formattedCommand = command.replace("{PLAYER}", player.getName());
 
-            player.getServer().dispatchCommand(player.getServer().getConsoleSender(), formattedCommand);
+            Server server = player.getServer();
+
+            server.dispatchCommand(server.getConsoleSender(), formattedCommand);
         });
 
         voucher.items().forEach(item -> ItemUtil.giveItem(player, item));

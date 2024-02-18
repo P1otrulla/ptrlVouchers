@@ -19,20 +19,23 @@ public class VoucherConfig implements ReloadableConfig, VoucherRepository {
         "default", new Voucher()
     );
 
-    @Description({ "", "# Messages" })
-    public Notification invalidAmount = Notification.chat("&4Blad:︎ &cPodana ilość jest nieprawidłowa!");
-    public Notification playerNotFound = Notification.chat("&4Blad:︎ &cNie znaleziono takiego gracza!");
-    public Notification noPermission = Notification.chat("&cObawiam się kolego, że nie masz uprawnień! &f({PERMISSION})");
-    public Notification correctUsage = Notification.chat("&ePoprawne użycie: &9{USAGE}");
+    @Description({ "", "# Options" })
+    public boolean reciveUpdateOnJoin = true;
 
-    public Notification correctUsageHeader = Notification.chat("&ePoprawne użycie:");
+    @Description({ "", "# Messages" })
+    public Notification invalidAmount = Notification.chat("&4Error: &cThe specified amount is invalid!");
+    public Notification playerNotFound = Notification.chat("&4Error: &cPlayer not found!");
+    public Notification noPermission = Notification.chat("&cI'm afraid you don't have permission! &f({PERMISSION})");
+    public Notification correctUsage = Notification.chat("&eCorrect usage: &9{USAGE}");
+
+    public Notification correctUsageHeader = Notification.chat("&eCorrect usage:");
     public Notification correctUsageEntry = Notification.chat("&9{USAGE}");
 
-    public Notification vouchersList = Notification.chat("&6Dostepne vouchery: &7{VOUCHERS}");
-    public Notification voucherNotFound = Notification.chat("&cNie znaleziono takiego voucheru!");
-    public Notification voucherRecived = Notification.chat("&6Otrzymales voucher &7{VOUCHER}");
-    public Notification voucherGiven = Notification.chat("&6Nadałeś voucher: &f{VOUCHER} &6graczowi &f{PLAYER}");
-    public Notification voucherUsed = Notification.title("&6Użyłeś vouchera &7{VOUCHER}");
+    public Notification vouchersList = Notification.chat("&6Available vouchers: &7{VOUCHERS}");
+    public Notification voucherNotFound = Notification.chat("&cVoucher not found!");
+    public Notification voucherRecived = Notification.chat("&6You have received a voucher: &7{VOUCHER}");
+    public Notification voucherGiven = Notification.chat("&6You have given the voucher: &f{VOUCHER} &6to player &f{PLAYER}");
+    public Notification voucherUsed = Notification.title("&6You have used the voucher: &7{VOUCHER}");
 
     @Override
     public Resource resource(File folder) {

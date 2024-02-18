@@ -33,6 +33,9 @@ dependencies {
         exclude("kotlin")
     }
 
+    // gitcheck
+    implementation("com.eternalcode:gitcheck:1.0.0")
+
     // adventure
     implementation("net.kyori:adventure-platform-bukkit:4.3.0")
     implementation("net.kyori:adventure-text-minimessage:4.13.0")
@@ -53,9 +56,9 @@ dependencies {
 bukkit {
     main = "$mainPackage.VoucherPlugin"
     apiVersion = "1.13"
-    prefix = "VoucherPlugin"
+    prefix = "ptrlVouchers"
     author = "Piotrulla"
-    name = "VoucherPlugin"
+    name = "ptrlVouchers"
     depend = listOf("Vault")
     version = "${project.version}"
 }
@@ -67,7 +70,7 @@ tasks.withType<JavaCompile> {
 }
 
 tasks.withType<ShadowJar> {
-    archiveFileName.set("VoucherPlugin v${project.version}.jar")
+    archiveFileName.set("ptrlVouchers v${project.version}.jar")
 
     val prefix = "$mainPackage.libs"
 
