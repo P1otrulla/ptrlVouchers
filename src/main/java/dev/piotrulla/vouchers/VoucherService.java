@@ -1,55 +1,57 @@
 package dev.piotrulla.vouchers;
 
-import dev.piotrulla.vouchers.config.ConfigService;
-import dev.piotrulla.vouchers.bridge.vault.MoneyService;
-import dev.piotrulla.vouchers.util.ItemUtil;
-import org.bukkit.Server;
-import org.bukkit.entity.Player;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 
 public class VoucherService {
 
-    private final VoucherDataConfig dataConfig;
-    private final ConfigService configService;
-    private final MoneyService moneyService;
+    private final VoucherConfig config;
+    private final VoucherItemService voucherItemService;
 
-    public VoucherService(VoucherDataConfig dataConfig, ConfigService configService, MoneyService moneyService) {
-        this.dataConfig = dataConfig;
-        this.configService = configService;
-        this.moneyService = moneyService;
+    public VoucherService(VoucherConfig config, VoucherItemService voucherItemService) {
+        this.config = config;
+        this.voucherItemService = voucherItemService;
     }
 
-    public void giveVoucher(Player player, Voucher voucher) {
-        this.removeItemInHand(player);
-
-        this.dataConfig.addUsedVoucher();
-        this.configService.save(this.dataConfig);
-
-        voucher.commands().forEach(command -> {
-            String formattedCommand = command.replace("{PLAYER}", player.getName());
-
-            Server server = player.getServer();
-
-            server.dispatchCommand(server.getConsoleSender(), formattedCommand);
-        });
-
-        voucher.items().forEach(item -> ItemUtil.giveItem(player, item));
-
-        if (this.moneyService != null && voucher.money() > 0) {
-            this.moneyService.deposit(player, voucher.money());
-        }
+    public Optional<Voucher> findVoucher(String name) {
+        return Optional.ofNullable(this.config.vouchers.get(name));
     }
 
-    void removeItemInHand(Player player) {
-        ItemStack hand = player.getInventory().getItemInMainHand().clone();
-
-        if (hand.getAmount() == 1) {
-            player.getInventory().setItemInMainHand(null);
-
-            return;
+    public Optional<Voucher> findVoucher(ItemStack itemStack) {
+        if (itemStack == null) {
+            return Optional.empty();
         }
 
-        hand.setAmount(hand.getAmount() - 1);
-        player.getInventory().setItemInMainHand(hand);
+        String voucherName = this.voucherItemService.getVoucherNameFromItem(itemStack);
+        if (voucherName == null) {
+            return Optional.empty();
+        }
+
+        Optional<Voucher> voucherOptional = findVoucher(voucherName);
+        if (voucherOptional.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Voucher voucher = voucherOptional.get();
+
+        if (!this.voucherItemService.isValidVoucher(itemStack, voucher)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(voucher);
+    }
+
+    public List<String> findAllVouchers() {
+        return this.config.vouchers.values().stream()
+                .filter(Objects::nonNull)
+                .map(Voucher::name)
+                .toList();
     }
 }

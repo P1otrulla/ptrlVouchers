@@ -1,65 +1,85 @@
 package dev.piotrulla.vouchers;
 
-import com.google.common.collect.ImmutableMap;
-import dev.piotrulla.vouchers.config.ReloadableConfig;
-import dev.piotrulla.vouchers.notification.Notification;
-import net.dzikoysk.cdn.entity.Description;
-import net.dzikoysk.cdn.source.Resource;
-import net.dzikoysk.cdn.source.Source;
-import org.bukkit.inventory.ItemStack;
-
-import java.io.File;
+import com.eternalcode.multification.notice.Notice;
+import dev.piotrulla.vouchers.config.item.ConfigItem;
+import eu.okaeri.configs.OkaeriConfig;
+import eu.okaeri.configs.annotation.Comment;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemFlag;
 
-public class VoucherConfig implements ReloadableConfig, VoucherRepository {
+public class VoucherConfig extends OkaeriConfig {
 
-    public Map<String, Voucher> vouchers = ImmutableMap.of(
-        "default", new Voucher()
+    public Map<String, Voucher> vouchers = Map.of(
+            "vip7d", new Voucher(
+                    "vip7d",
+                    ConfigItem.builder()
+                            .material(Material.PAPER)
+                            .name("<gold>Voucher: &fVIP 7d")
+                            .lore("&7Contains:", "&7- &eVIP rank for 7 days", "&7- &21000$")
+                            .enchantment(Enchantment.AQUA_AFFINITY, 1)
+                            .flag(ItemFlag.HIDE_ENCHANTS)
+                            .customModelData(1001)
+                            .build(),
+                    Map.of(),
+                    List.of("lp user {PLAYER} parent addtemp vip 7d"),
+                    1000.0
+            ),
+            "money1k", new Voucher(
+                    "money1k",
+                    ConfigItem.builder()
+                            .material(Material.GOLD_INGOT)
+                            .name("<gold>Voucher: &f1000$")
+                            .lore("&7Contains:", "&7- &21000$")
+                            .build(),
+                    Map.of(),
+                    List.of(),
+                    1000.0
+            ),
+            "itemsPack", new Voucher(
+                    "itemsPack",
+                    ConfigItem.builder()
+                            .material(Material.CHEST)
+                            .name("<gold>Voucher: &fStarter Pack")
+                            .lore("&7Contains:", "&7- &eStarter items")
+                            .build(),
+                    Map.of(
+                            1, ConfigItem.builder().material(Material.DIAMOND_SWORD).name("&bStarter Sword").build(),
+                            2, ConfigItem.builder().material(Material.DIAMOND_PICKAXE).name("&bStarter Pickaxe").build()
+                    ),
+                    List.of(),
+                    0.0
+            )
     );
 
-    @Description({ "", "# Options" })
-    public boolean reciveUpdateOnJoin = true;
+    @Comment({"", "# Messages"})
+    public Notice invalidAmount = Notice.chat("<b><gradient:#F0C98C:#FFE4BA:#F0C98C>Voucher</gradient></b> "
+            + "<dark_gray>➤</dark_gray> <color:#C21008>Invalid amount!");
+    public Notice playerNotFound = Notice.chat("<b><gradient:#F0C98C:#FFE4BA:#F0C98C>Voucher</gradient></b> "
+            + "<dark_gray>➤</dark_gray> <color:#C21008>Player not found!");
+    public Notice noPermission = Notice.chat("<b><gradient:#F0C98C:#FFE4BA:#F0C98C>Voucher</gradient></b> "
+            + "<dark_gray>➤</dark_gray> <color:#C21008>You don't have permission! &f({PERMISSION})");
+    public Notice configReloaded = Notice.chat("<b><gradient:#F0C98C:#FFE4BA:#F0C98C>Voucher</gradient></b> "
+            + "<dark_gray>➤</dark_gray> <white>Config reloaded!");
+    public Notice playerOnly = Notice.chat("<b><gradient:#F0C98C:#FFE4BA:#F0C98C>Voucher</gradient></b> "
+            + "<dark_gray>➤</dark_gray> <white>This command can only be used by players!");
+    public Notice correctUsage = Notice.chat("<b><gradient:#F0C98C:#FFE4BA:#F0C98C>Voucher</gradient></b> "
+            + "<dark_gray>➤</dark_gray> <white>Correct usage: <white{USAGE}");
+    public Notice correctUsageHeader = Notice.chat("<b><gradient:#F0C98C:#FFE4BA:#F0C98C>Voucher</gradient></b> "
+            + "<dark_gray>➤</dark_gray> <white>Correct usage:");
+    public Notice correctUsageEntry = Notice.chat("<b><gradient:#F0C98C:#FFE4BA:#F0C98C>Voucher</gradient></b> "
+            + "<dark_gray>➤</dark_gray> <white>{USAGE}");
 
-    @Description({ "", "# Messages" })
-    public Notification invalidAmount = Notification.chat("&4Error: &cThe specified amount is invalid!");
-    public Notification playerNotFound = Notification.chat("&4Error: &cPlayer not found!");
-    public Notification noPermission = Notification.chat("&cI'm afraid you don't have permission! &f({PERMISSION})");
-    public Notification correctUsage = Notification.chat("&eCorrect usage: &9{USAGE}");
-
-    public Notification correctUsageHeader = Notification.chat("&eCorrect usage:");
-    public Notification correctUsageEntry = Notification.chat("&9{USAGE}");
-
-    public Notification vouchersList = Notification.chat("&6Available vouchers: &7{VOUCHERS}");
-    public Notification voucherNotFound = Notification.chat("&cVoucher not found!");
-    public Notification voucherRecived = Notification.chat("&6You have received a voucher: &7{VOUCHER}");
-    public Notification voucherGiven = Notification.chat("&6You have given the voucher: &f{VOUCHER} &6to player &f{PLAYER}");
-    public Notification voucherUsed = Notification.title("&6You have used the voucher: &7{VOUCHER}");
-
-    @Override
-    public Resource resource(File folder) {
-        return Source.of(folder, "config.yml");
-    }
-
-    @Override
-    public Optional<Voucher> findVoucher(String name) {
-        return Optional.ofNullable(this.vouchers.get(name));
-    }
-
-    @Override
-    public Optional<Voucher> findVoucher(ItemStack itemStack) {
-        for (Voucher voucher : this.vouchers.values()) {
-            if (voucher.item().isSimilar(itemStack)) {
-                return Optional.of(voucher);
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    @Override
-    public List<String> findAllVouchers() {
-        return this.vouchers.values().stream().map(Voucher::name).toList();
-    }
+    public Notice vouchersList = Notice.chat("<b><gradient:#F0C98C:#FFE4BA:#F0C98C>Voucher</gradient></b> "
+            + "<dark_gray>➤</dark_gray> <white>Available vouchers: &7{VOUCHERS}");
+    public Notice voucherNotFound = Notice.chat("<b><gradient:#F0C98C:#FFE4BA:#F0C98C>Voucher</gradient></b> "
+            + "<dark_gray>➤</dark_gray> <color:#C21008>Voucher not found!");
+    public Notice voucherReceived = Notice.chat("<b><gradient:#F0C98C:#FFE4BA:#F0C98C>Voucher</gradient></b> "
+            + "<dark_gray>➤</dark_gray> <white>You have received a voucher: &7{VOUCHER}");
+    public Notice voucherGiven = Notice.chat("<b><gradient:#F0C98C:#FFE4BA:#F0C98C>Voucher</gradient></b> "
+            + "<dark_gray>➤</dark_gray> <white>You have given the voucher: &f{VOUCHER} <gray>to</gray> &6{PLAYER}");
+    public Notice voucherUsed = Notice.chat("<b><gradient:#F0C98C:#FFE4BA:#F0C98C>Voucher</gradient></b> "
+            + "<dark_gray>➤</dark_gray> <white>You have used the voucher: &7{VOUCHER}");
 }
