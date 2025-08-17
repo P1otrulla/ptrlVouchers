@@ -1,8 +1,8 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    id("java")
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    `java-library`
+    id("com.gradleup.shadow") version "9.0.2"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0"
 }
 
@@ -37,14 +37,11 @@ dependencies {
     implementation("com.eternalcode:gitcheck:1.0.0")
 
     // adventure
-    implementation("net.kyori:adventure-platform-bukkit:4.3.0")
-    implementation("net.kyori:adventure-text-minimessage:4.13.0")
+    implementation("net.kyori:adventure-platform-bukkit:4.4.1")
+    implementation("net.kyori:adventure-text-minimessage:4.24.0")
 
     // command framework
-    implementation("dev.rollczi.litecommands:bukkit:2.8.8")
-
-    // Inventory framework
-    implementation("dev.triumphteam:triumph-gui:3.1.4")
+    implementation("dev.rollczi.litecommands:bukkit:2.8.9")
 
     // Economy
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
@@ -63,10 +60,14 @@ bukkit {
     version = "${project.version}"
 }
 
-tasks.withType<JavaCompile> {
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+}
+
+tasks.compileJava {
     options.compilerArgs = listOf("-Xlint:deprecation", "-parameters")
-    options.javaModuleVersion.set("16")
     options.encoding = "UTF-8"
+    options.release = 21
 }
 
 tasks.withType<ShadowJar> {
@@ -80,7 +81,6 @@ tasks.withType<ShadowJar> {
         "org.bstats",
         "net.dzikoysk",
         "net.kyori",
-        "dev.triumphteam",
         "dev.rollczi",
     ).forEach { pack ->
         relocate(pack, "$prefix.$pack")
