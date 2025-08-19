@@ -1,9 +1,9 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import net.minecrell.pluginyml.paper.PaperPluginDescription
 
 plugins {
-    id("java")
-    id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("net.minecrell.plugin-yml.bukkit") version "0.6.0"
+    `java-library`
+    id("com.gradleup.shadow") version "9.0.2"
+    id("de.eldoria.plugin-yml.paper") version "0.7.1"
 }
 
 group = "dev.piotrulla"
@@ -12,77 +12,83 @@ val mainPackage = "$group.vouchers"
 
 repositories {
     gradlePluginPortal()
-    mavenCentral()
-    mavenLocal()
+    maven("https://maven-central.storage-download.googleapis.com/maven2")
 
-    maven { url = uri("https://repo.extendedclip.com/content/repositories/placeholderapi/")}
-    maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots/")}
-    maven { url = uri("https://papermc.io/repo/repository/maven-public/")}
-    maven { url = uri("https://repository.minecodes.pl/releases") }
-    maven { url = uri("https://repo.panda-lang.org/releases") }
-    maven { url = uri("https://repo.eternalcode.pl/releases") }
-    maven { url = uri("https://maven.enginehub.org/repo") }
+    maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
+    maven("https://oss.sonatype.org/content/repositories/snapshots/")
+    maven("https://papermc.io/repo/repository/maven-public/")
+    maven("https://repo.panda-lang.org/releases")
+    maven("https://repo.eternalcode.pl/releases")
+    maven("https://maven.enginehub.org/repo")
+    maven("https://storehouse.okaeri.eu/repository/maven-releases/")
+    maven("https://repo.eternalcode.pl/snapshots/")
+    maven("https://repo.eternalcode.pl/releases/")
+    maven("https://jitpack.io")
 }
 
 dependencies {
-    // Engine
-    compileOnly("org.spigotmc:spigot-api:1.19-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
 
-    // Configs
-    implementation("net.dzikoysk:cdn:1.14.4") {
-        exclude("kotlin")
-    }
+    paperLibrary("net.kyori:adventure-platform-bukkit:4.4.1")
+    paperLibrary("net.kyori:adventure-text-minimessage:4.24.0")
 
-    // gitcheck
-    implementation("com.eternalcode:gitcheck:1.0.0")
+    paperLibrary("com.eternalcode:multification-okaeri:1.1.4")
+    paperLibrary("com.eternalcode:multification-bukkit:1.1.4")
+    paperLibrary("com.eternalcode:eternalcode-commons-bukkit:1.3.0")
+    paperLibrary("com.eternalcode:eternalcode-commons-adventure:1.3.0")
 
-    // adventure
-    implementation("net.kyori:adventure-platform-bukkit:4.3.0")
-    implementation("net.kyori:adventure-text-minimessage:4.13.0")
+    paperLibrary("dev.rollczi:litecommands-bukkit:3.10.4")
+    paperLibrary("dev.rollczi:litecommands-adventure:3.10.4")
 
-    // command framework
-    implementation("dev.rollczi.litecommands:bukkit:2.8.8")
+    paperLibrary("eu.okaeri:okaeri-configs-yaml-snakeyaml:5.0.2")
+    paperLibrary("eu.okaeri:okaeri-configs-serdes-commons:5.0.2")
+    paperLibrary("eu.okaeri:okaeri-configs-serdes-bukkit:5.0.2")
 
-    // Inventory framework
-    implementation("dev.triumphteam:triumph-gui:3.1.4")
+    compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
 
-    // Economy
-    compileOnly("com.github.MilkBowl:VaultAPI:1.7")
-
-    // bStats
     implementation("org.bstats:bstats-bukkit:3.0.0")
 }
 
-bukkit {
-    main = "$mainPackage.VoucherPlugin"
-    apiVersion = "1.13"
+paper {
+    name = "ptrlVouchers"
+    version = "${project.version}"
     prefix = "ptrlVouchers"
     author = "Piotrulla"
-    name = "ptrlVouchers"
-    depend = listOf("Vault")
-    version = "${project.version}"
+
+    main = "dev.piotrulla.vouchers.VoucherPlugin"
+    bootstrapper = "dev.piotrulla.vouchers.VoucherBootstrap"
+    loader = "dev.piotrulla.vouchers.VoucherLoader"
+
+    generateLibrariesJson = true
+    apiVersion = "1.19"
+
+
+    serverDependencies {
+        register("Vault") {
+            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
+            required = true
+        }
+    }
 }
 
-tasks.withType<JavaCompile> {
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+}
+
+tasks.compileJava {
     options.compilerArgs = listOf("-Xlint:deprecation", "-parameters")
-    options.javaModuleVersion.set("16")
     options.encoding = "UTF-8"
+    options.release = 21
 }
 
-tasks.withType<ShadowJar> {
+tasks.shadowJar {
     archiveFileName.set("ptrlVouchers v${project.version}.jar")
 
-    val prefix = "$mainPackage.libs"
+    exclude(
+        "org/intellij/lang/annotations/**",
+        "org/jetbrains/annotations/**",
+    )
 
-    listOf(
-        "panda",
-        "org.panda_lang",
-        "org.bstats",
-        "net.dzikoysk",
-        "net.kyori",
-        "dev.triumphteam",
-        "dev.rollczi",
-    ).forEach { pack ->
-        relocate(pack, "$prefix.$pack")
-    }
+    // bstas relocation
+    relocate("org.bstats", "dev.piotrulla.ptrlvouchers.libs.org.bstats")
 }

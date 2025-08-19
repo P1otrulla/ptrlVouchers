@@ -1,166 +1,97 @@
 package dev.piotrulla.vouchers;
 
+import com.eternalcode.commons.adventure.AdventureLegacyColorPostProcessor;
+import com.eternalcode.commons.adventure.AdventureLegacyColorPreProcessor;
 import dev.piotrulla.vouchers.bridge.BridgeService;
-import dev.piotrulla.vouchers.command.argument.PlayerArgument;
-import dev.piotrulla.vouchers.command.argument.VoucherArgument;
-import dev.piotrulla.vouchers.command.handler.InvalidUsageHandler;
-import dev.piotrulla.vouchers.command.handler.NotificationHandler;
-import dev.piotrulla.vouchers.command.handler.PermissionHandler;
-import dev.piotrulla.vouchers.config.ConfigService;
 import dev.piotrulla.vouchers.bridge.vault.MoneyService;
-import dev.piotrulla.vouchers.notification.Notification;
-import dev.piotrulla.vouchers.notification.NotificationBroadcaster;
-import dev.piotrulla.vouchers.updater.UpdaterController;
-import dev.piotrulla.vouchers.updater.UpdaterService;
-import dev.piotrulla.vouchers.util.legacy.LegacyColorProcessor;
+import dev.piotrulla.vouchers.config.ConfigService;
+import dev.piotrulla.vouchers.litecommands.InvalidUsageHandlerImpl;
+import dev.piotrulla.vouchers.litecommands.MissingPermissionHandlerImpl;
+import dev.piotrulla.vouchers.litecommands.VoucherArgument;
+import dev.piotrulla.vouchers.notification.NoticeService;
 import dev.rollczi.litecommands.LiteCommands;
+import dev.rollczi.litecommands.adventure.LiteAdventureExtension;
 import dev.rollczi.litecommands.bukkit.LiteBukkitFactory;
-import dev.rollczi.litecommands.bukkit.tools.BukkitOnlyPlayerContextual;
-import dev.rollczi.litecommands.command.permission.RequiredPermissions;
-import dev.rollczi.litecommands.schematic.Schematic;
-import net.kyori.adventure.platform.AudienceProvider;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
+import dev.rollczi.litecommands.bukkit.LiteBukkitMessages;
+import dev.rollczi.litecommands.message.LiteMessages;
+import java.io.File;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SingleLineChart;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class VoucherPlugin extends JavaPlugin {
 
-    private ConfigService configService;
-    private VoucherDataConfig data;
-    private VoucherConfig config;
-
-    private UpdaterService updaterService;
-
-    private BridgeService bridgeService;
     private MoneyService moneyService;
-
-    private VoucherService voucherService;
-
-    private AudienceProvider audienceProvider;
-    private MiniMessage miniMessage;
-
-    private NotificationBroadcaster broadcaster;
-
     private LiteCommands<CommandSender> liteCommands;
 
     @Override
     public void onEnable() {
-        this.configService = new ConfigService(this.getDataFolder());
-        this.data = this.configService.load(new VoucherDataConfig());
-        this.config = this.configService.load(new VoucherConfig());
-
         Server server = this.getServer();
-
-        this.updaterService = new UpdaterService(this.getDescription());
-
-        this.bridgeService = new BridgeService(server.getServicesManager(), server.getPluginManager(), this.moneyService);
-        this.bridgeService.init();
-
-        this.moneyService = this.bridgeService.borrowMoneyService();
-
-        this.voucherService = new VoucherService(this.data, this.configService, this.moneyService);
-
-        this.audienceProvider = BukkitAudiences.create(this);
-        this.miniMessage = MiniMessage.builder()
-                .postProcessor(new LegacyColorProcessor())
+        MiniMessage miniMessage = MiniMessage.builder()
+                .postProcessor(new AdventureLegacyColorPostProcessor())
+                .preProcessor(new AdventureLegacyColorPreProcessor())
                 .build();
 
-        this.broadcaster = new NotificationBroadcaster(this.audienceProvider, this.miniMessage);
+        ConfigService configService = new ConfigService(null);
 
-        server.getPluginManager().registerEvents(new VoucherController(this.broadcaster, this.config, this.voucherService, this.config), this);
+        VoucherConfig voucherConfig = configService.create(
+                VoucherConfig.class,
+                new File(this.getDataFolder(), "config.yml")
+        );
+        NoticeService noticeService = new NoticeService(voucherConfig, miniMessage);
+        configService = new ConfigService(noticeService.getNoticeRegistry());
 
-        if (this.config.reciveUpdateOnJoin) {
-            server.getPluginManager().registerEvents(new UpdaterController(this.broadcaster, this.updaterService), this);
-        }
+        PluginManager pluginManager = server.getPluginManager();
+        BridgeService bridgeService = new BridgeService(
+                server.getServicesManager(),
+                pluginManager,
+                this.moneyService
+        );
+        bridgeService.init();
 
-        this.liteCommands = LiteBukkitFactory.builder(server, "vouchers")
-                .resultHandler(Notification.class, new NotificationHandler(this.broadcaster))
-                .resultHandler(Schematic.class, new InvalidUsageHandler(this.broadcaster, this.config))
-                .resultHandler(RequiredPermissions.class, new PermissionHandler(this.broadcaster, this.config))
+        this.moneyService = bridgeService.borrowMoneyService();
 
-                .contextualBind(Player.class, new BukkitOnlyPlayerContextual<>("only player"))
+        VoucherItemService voucherItemService = new VoucherItemService(this.moneyService, this);
 
-                .argument(Player.class, new PlayerArgument(this.config, server))
-                .argument(Voucher.class, new VoucherArgument(this.config))
+        VoucherService voucherService = new VoucherService(voucherConfig, voucherItemService);
 
-                .commandInstance(new VoucherCommand(this.broadcaster, this.config, this.config))
+        pluginManager.registerEvents(
+                new VoucherController(
+                        voucherService,
+                        voucherItemService,
+                        noticeService
+                ),
+                this
+        );
 
-                .register();
+        this.liteCommands = LiteBukkitFactory.builder("vouchers", this, server)
+                .extension(new LiteAdventureExtension<>(), extension -> extension.serializer(miniMessage))
+
+                .message(LiteBukkitMessages.PLAYER_NOT_FOUND, input -> voucherConfig.playerNotFound)
+                .message(LiteMessages.MISSING_PERMISSIONS, input -> voucherConfig.noPermission)
+                .message(LiteBukkitMessages.PLAYER_ONLY, input -> voucherConfig.playerOnly)
+
+                .invalidUsage(new InvalidUsageHandlerImpl(noticeService))
+                .missingPermission(new MissingPermissionHandlerImpl(noticeService))
+
+                .argument(Voucher.class, new VoucherArgument(voucherService, voucherConfig))
+
+                .commands(new VoucherCommand(noticeService, voucherService, voucherItemService, configService))
+
+                .build();
 
         Metrics metrics = new Metrics(this, 18960);
-
-        metrics.addCustomChart(new SingleLineChart("used_vouchers", this.data::getUsedVouchers));
-        metrics.addCustomChart(new SingleLineChart("total_vouchers", () -> this.config.vouchers.size()));
-
-        this.updaterService.isUpToDate().whenComplete((state, throwable) -> {
-            if (throwable != null) {
-                throwable.printStackTrace();
-                return;
-            }
-
-            if (state) {
-                return;
-            }
-
-            this.getLogger().warning(" ");
-            this.getLogger().warning("ptrlVouchers has an update available!");
-            this.getLogger().warning("Download the latest version from:");
-            this.getLogger().warning("https://github.com/P1otrulla/ptrlVouchers/releases/latest");
-            this.getLogger().warning(" ");
-        });
+        metrics.addCustomChart(new SingleLineChart("total_vouchers", () -> voucherConfig.vouchers.size()));
     }
 
     @Override
     public void onDisable() {
-        this.liteCommands.getPlatform().unregisterAll();
-    }
-
-    public VoucherService getVoucherService() {
-        return this.voucherService;
-    }
-
-    public VoucherConfig getVoucherConfig() {
-        return this.config;
-    }
-
-    public VoucherDataConfig getVoucherDataConfig() {
-        return this.data;
-    }
-
-    public ConfigService getConfigService() {
-        return this.configService;
-    }
-
-    public NotificationBroadcaster getNotificationBroadcaster() {
-        return this.broadcaster;
-    }
-
-    public AudienceProvider getAudienceProvider() {
-        return this.audienceProvider;
-    }
-
-    public MiniMessage getMiniMessage() {
-        return this.miniMessage;
-    }
-
-    public LiteCommands<CommandSender> getLiteCommands() {
-        return this.liteCommands;
-    }
-
-    public BridgeService getBridgeService() {
-        return this.bridgeService;
-    }
-
-    public MoneyService getMoneyService() {
-        return this.moneyService;
-    }
-
-    public UpdaterService getUpdaterService() {
-        return this.updaterService;
+        if (this.liteCommands != null) {
+            this.liteCommands.unregister();
+        }
     }
 }
