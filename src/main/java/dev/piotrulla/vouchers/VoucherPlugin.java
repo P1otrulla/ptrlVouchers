@@ -2,6 +2,18 @@ package dev.piotrulla.vouchers;
 
 import com.eternalcode.commons.adventure.AdventureLegacyColorPostProcessor;
 import com.eternalcode.commons.adventure.AdventureLegacyColorPreProcessor;
+import com.eternalcode.multification.notice.resolver.NoticeResolverRegistry;
+import com.eternalcode.multification.notice.resolver.actionbar.ActionbarResolver;
+import com.eternalcode.multification.notice.resolver.bossbar.BossBarResolver;
+import com.eternalcode.multification.notice.resolver.bossbar.BossBarService;
+import com.eternalcode.multification.notice.resolver.chat.ChatResolver;
+import com.eternalcode.multification.notice.resolver.sound.SoundAdventureResolver;
+import com.eternalcode.multification.notice.resolver.title.SubtitleResolver;
+import com.eternalcode.multification.notice.resolver.title.SubtitleWithEmptyTitleResolver;
+import com.eternalcode.multification.notice.resolver.title.TimesResolver;
+import com.eternalcode.multification.notice.resolver.title.TitleHideResolver;
+import com.eternalcode.multification.notice.resolver.title.TitleResolver;
+import com.eternalcode.multification.notice.resolver.title.TitleWithEmptySubtitleResolver;
 import dev.piotrulla.vouchers.bridge.BridgeService;
 import dev.piotrulla.vouchers.bridge.vault.MoneyService;
 import dev.piotrulla.vouchers.config.ConfigService;
@@ -36,14 +48,24 @@ public class VoucherPlugin extends JavaPlugin {
                 .preProcessor(new AdventureLegacyColorPreProcessor())
                 .build();
 
-        ConfigService configService = new ConfigService(null);
-
+        NoticeResolverRegistry noticeResolverRegistry = new NoticeResolverRegistry()
+                .registerResolver(new ChatResolver())
+                .registerResolver(new TitleResolver())
+                .registerResolver(new SubtitleResolver())
+                .registerResolver(new TitleWithEmptySubtitleResolver())
+                .registerResolver(new SubtitleWithEmptyTitleResolver())
+                .registerResolver(new TimesResolver())
+                .registerResolver(new TitleHideResolver())
+                .registerResolver(new SoundAdventureResolver())
+                .registerResolver(new ActionbarResolver())
+                .registerResolver(new BossBarResolver(new BossBarService()));
+        ConfigService configService = new ConfigService(noticeResolverRegistry);
         VoucherConfig voucherConfig = configService.create(
                 VoucherConfig.class,
                 new File(this.getDataFolder(), "config.yml")
         );
         NoticeService noticeService = new NoticeService(voucherConfig, miniMessage);
-        configService = new ConfigService(noticeService.getNoticeRegistry());
+        configService = new ConfigService(noticeResolverRegistry);
 
         PluginManager pluginManager = server.getPluginManager();
         BridgeService bridgeService = new BridgeService(

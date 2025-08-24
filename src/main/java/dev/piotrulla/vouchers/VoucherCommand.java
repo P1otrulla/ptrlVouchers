@@ -44,14 +44,14 @@ public class VoucherCommand {
                 .notice(notice -> notice.voucherGiven)
                 .placeholder("{PLAYER}", player.getName())
                 .placeholder("{VOUCHER}", voucher.name())
-                .viewer(player)
+                .viewer(commandSender)
                 .send();
 
         this.noticeService.create()
                 .notice(notice -> notice.voucherReceived)
                 .placeholder("{PLAYER}", player.getName())
                 .placeholder("{VOUCHER}", voucher.name())
-                .viewer(commandSender)
+                .viewer(player)
                 .send();
     }
 
