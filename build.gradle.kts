@@ -44,6 +44,8 @@ dependencies {
     paperLibrary("eu.okaeri:okaeri-configs-serdes-commons:5.0.2")
     paperLibrary("eu.okaeri:okaeri-configs-serdes-bukkit:5.0.2")
 
+    paperLibrary("com.github.cryptomorin:XSeries:13.3.3")
+
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
 
     implementation("org.bstats:bstats-bukkit:3.0.0")

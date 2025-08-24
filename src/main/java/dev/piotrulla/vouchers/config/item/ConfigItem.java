@@ -1,5 +1,6 @@
 package dev.piotrulla.vouchers.config.item;
 
+import com.cryptomorin.xseries.XEnchantment;
 import com.eternalcode.commons.adventure.AdventureUtil;
 import com.eternalcode.multification.shared.Formatter;
 import dev.piotrulla.vouchers.MiniMessageHolder;
@@ -22,7 +23,7 @@ public class ConfigItem implements Serializable, MiniMessageHolder {
     private static final Formatter EMPTY_FORMATTER = new Formatter();
 
     private final List<ItemFlag> flags = new ArrayList<>();
-    private final Map<Enchantment, Integer> enchantments = new HashMap<>();
+    private final Map<XEnchantment, Integer> enchantments = new HashMap<>();
     private String name = "<aqua> Kozacki dirt";
     private List<String> lore = new ArrayList<>();
     private Material material = Material.DIRT;
@@ -61,8 +62,12 @@ public class ConfigItem implements Serializable, MiniMessageHolder {
             }
 
             if (!this.enchantments.isEmpty()) {
-                for (Map.Entry<Enchantment, Integer> entry : this.enchantments.entrySet()) {
-                    meta.addEnchant(entry.getKey(), entry.getValue(), true);
+                for (Map.Entry<XEnchantment, Integer> entry : this.enchantments.entrySet()) {
+                    XEnchantment xEnchantment = entry.getKey();
+                    Enchantment bukkitEnchantment = xEnchantment.get();
+                    if (bukkitEnchantment != null) {
+                        meta.addEnchant(bukkitEnchantment, entry.getValue(), true);
+                    }
                 }
             }
 
@@ -114,7 +119,7 @@ public class ConfigItem implements Serializable, MiniMessageHolder {
             return this;
         }
 
-        public ConfigItem.Builder enchantment(Enchantment enchantment, int level) {
+        public ConfigItem.Builder enchantment(XEnchantment enchantment, int level) {
             this.itemElement.enchantments.put(enchantment, level);
             return this;
         }

@@ -1,5 +1,6 @@
 package dev.piotrulla.vouchers;
 
+import com.cryptomorin.xseries.XEnchantment;
 import com.eternalcode.multification.notice.Notice;
 import dev.piotrulla.vouchers.config.item.ConfigItem;
 import eu.okaeri.configs.OkaeriConfig;
@@ -19,7 +20,7 @@ public class VoucherConfig extends OkaeriConfig {
                             .material(Material.PAPER)
                             .name("<gold>Voucher: &fVIP 7d")
                             .lore("&7Contains:", "&7- &eVIP rank for 7 days", "&7- &21000$")
-                            .enchantment(Enchantment.AQUA_AFFINITY, 1)
+                            .enchantment(XEnchantment.AQUA_AFFINITY, 1)
                             .flag(ItemFlag.HIDE_ENCHANTS)
                             .customModelData(1001)
                             .build(),
