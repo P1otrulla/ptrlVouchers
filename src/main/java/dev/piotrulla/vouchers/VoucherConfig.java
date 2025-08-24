@@ -3,6 +3,7 @@ package dev.piotrulla.vouchers;
 import com.cryptomorin.xseries.XEnchantment;
 import com.eternalcode.multification.notice.Notice;
 import dev.piotrulla.vouchers.config.item.ConfigItem;
+import dev.piotrulla.vouchers.confirm.ConfirmConfig;
 import eu.okaeri.configs.OkaeriConfig;
 import eu.okaeri.configs.annotation.Comment;
 import java.util.List;
@@ -12,6 +13,8 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 
 public class VoucherConfig extends OkaeriConfig {
+
+    public ConfirmConfig confirm = new ConfirmConfig();
 
     public Map<String, Voucher> vouchers = Map.of(
             "vip7d", new Voucher(
