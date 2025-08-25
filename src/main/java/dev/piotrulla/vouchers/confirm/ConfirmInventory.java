@@ -1,5 +1,6 @@
 package dev.piotrulla.vouchers.confirm;
 
+import dev.piotrulla.vouchers.Voucher;
 import dev.piotrulla.vouchers.VoucherConfig;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
@@ -16,12 +17,12 @@ public class ConfirmInventory {
         this.server = server;
     }
 
-    public void open(Player player, ItemStack voucherItem) {
-        ConfirmInventoryHolder holder = new ConfirmInventoryHolder(this.server, this.config.confirm.size, this.config.confirm.title);
+    public void open(Player player, Voucher voucher, ItemStack voucherItem) {
+        ConfirmInventoryHolder holder = new ConfirmInventoryHolder(this.server, this.config.confirm.size, this.config.confirm.title, voucher, voucherItem);
         Inventory inventory = holder.getInventory();
 
         if (this.config.confirm.cloneItem) {
-            inventory.setItem(this.config.confirm.cloneItemSlot, voucherItem.clone());
+            inventory.setItem(this.config.confirm.cloneItemSlot, voucher.item().clone());
         }
 
         for (int slot : this.config.confirm.yesSlots) {
