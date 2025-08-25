@@ -1,2 +1,2 @@
-rootProject.name = "VoucherPlugin"
+rootProject.name = "ptrlVouchers"
 

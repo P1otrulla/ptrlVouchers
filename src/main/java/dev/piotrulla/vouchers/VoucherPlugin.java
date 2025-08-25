@@ -17,6 +17,7 @@ import com.eternalcode.multification.notice.resolver.title.TitleWithEmptySubtitl
 import dev.piotrulla.vouchers.bridge.BridgeService;
 import dev.piotrulla.vouchers.bridge.vault.MoneyService;
 import dev.piotrulla.vouchers.config.ConfigService;
+import dev.piotrulla.vouchers.confirm.ConfirmInventoryController;
 import dev.piotrulla.vouchers.litecommands.InvalidUsageHandlerImpl;
 import dev.piotrulla.vouchers.litecommands.MissingPermissionHandlerImpl;
 import dev.piotrulla.vouchers.litecommands.VoucherArgument;
@@ -65,7 +66,6 @@ public class VoucherPlugin extends JavaPlugin {
                 new File(this.getDataFolder(), "config.yml")
         );
         NoticeService noticeService = new NoticeService(voucherConfig, miniMessage);
-        configService = new ConfigService(noticeResolverRegistry);
 
         PluginManager pluginManager = server.getPluginManager();
         BridgeService bridgeService = new BridgeService(
@@ -85,7 +85,16 @@ public class VoucherPlugin extends JavaPlugin {
                 new VoucherController(
                         voucherService,
                         voucherItemService,
-                        noticeService
+                        noticeService,
+                        voucherConfig
+                ),
+                this
+        );
+        pluginManager.registerEvents(
+                new ConfirmInventoryController(
+                        voucherItemService,
+                        noticeService,
+                        voucherConfig
                 ),
                 this
         );

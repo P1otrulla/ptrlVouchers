@@ -1,30 +1,38 @@
 package dev.piotrulla.vouchers;
 
+import dev.piotrulla.vouchers.confirm.ConfirmInventory;
 import dev.piotrulla.vouchers.notification.NoticeService;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 public class VoucherController implements Listener {
 
-    private final VoucherService voucherService;
     private final VoucherItemService voucherItemService;
+    private final VoucherService voucherService;
     private final NoticeService noticeService;
+    private final VoucherConfig config;
 
     public VoucherController(
             VoucherService voucherService,
             VoucherItemService voucherItemService,
-            NoticeService noticeService
+            NoticeService noticeService, VoucherConfig config
     ) {
         this.voucherService = voucherService;
         this.voucherItemService = voucherItemService;
         this.noticeService = noticeService;
+        this.config = config;
     }
 
     @EventHandler
     void onInteract(PlayerInteractEvent event) {
+        if (event.getHand() == EquipmentSlot.OFF_HAND) {
+            return;
+        }
+
         ItemStack itemStack = event.getItem();
 
         if (itemStack == null) {
@@ -35,6 +43,12 @@ public class VoucherController implements Listener {
             event.setCancelled(true);
 
             Player player = event.getPlayer();
+
+            if (this.config.confirm.enabled) {
+                ConfirmInventory confirmInventory = new ConfirmInventory(this.config, player.getServer());
+                confirmInventory.open(player, voucher, itemStack);
+                return;
+            }
 
             this.noticeService.create()
                     .notice(notice -> notice.voucherUsed)
