@@ -42,7 +42,7 @@ public class ConfirmInventoryController implements Listener {
 
         Player player = (Player) event.getWhoClicked();
 
-        if (item.isSimilar(this.config.confirm.yesItem)) {
+        if (item.isSimilar(this.config.confirm.yesItem.toItemStack())) {
             player.closeInventory();
 
             ItemStack originalItem = holder.getItem();
@@ -52,7 +52,6 @@ public class ConfirmInventoryController implements Listener {
                 return;
             }
 
-            player.getInventory().removeItem(originalItem);
             this.voucherItemService.giveVoucherRewards(player, voucher);
 
             this.noticeService.create()
@@ -64,7 +63,7 @@ public class ConfirmInventoryController implements Listener {
             return;
         }
 
-        if (item.isSimilar(this.config.confirm.noItem)) {
+        if (item.isSimilar(this.config.confirm.noItem.toItemStack())) {
             player.closeInventory();
         }
     }

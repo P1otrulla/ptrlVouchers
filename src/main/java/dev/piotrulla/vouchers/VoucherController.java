@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 public class VoucherController implements Listener {
@@ -28,6 +29,10 @@ public class VoucherController implements Listener {
 
     @EventHandler
     void onInteract(PlayerInteractEvent event) {
+        if (event.getHand() == EquipmentSlot.OFF_HAND) {
+            return;
+        }
+
         ItemStack itemStack = event.getItem();
 
         if (itemStack == null) {

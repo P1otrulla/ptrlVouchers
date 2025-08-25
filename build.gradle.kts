@@ -32,8 +32,8 @@ dependencies {
     paperLibrary("net.kyori:adventure-platform-bukkit:4.4.1")
     paperLibrary("net.kyori:adventure-text-minimessage:4.24.0")
 
-    paperLibrary("com.eternalcode:multification-okaeri:1.1.4")
-    paperLibrary("com.eternalcode:multification-bukkit:1.1.4")
+    paperLibrary("com.eternalcode:multification-okaeri:1.2.2")
+    paperLibrary("com.eternalcode:multification-bukkit:1.2.2")
     paperLibrary("com.eternalcode:eternalcode-commons-bukkit:1.3.0")
     paperLibrary("com.eternalcode:eternalcode-commons-adventure:1.3.0")
 

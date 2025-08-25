@@ -4,25 +4,22 @@ import dev.piotrulla.vouchers.config.item.ConfigItem;
 import eu.okaeri.configs.OkaeriConfig;
 import java.util.List;
 import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
 
 public class ConfirmConfig extends OkaeriConfig {
 
     public boolean enabled = true;
 
-    public ItemStack yesItem = ConfigItem.builder()
+    public ConfigItem yesItem = ConfigItem.builder()
             .material(Material.GREEN_STAINED_GLASS_PANE)
             .name("<green>Confirm")
-            .build()
-            .toItemStack();
+            .build();
 
     public List<Integer> yesSlots = List.of(11);
 
-    public ItemStack noItem = ConfigItem.builder()
+    public ConfigItem noItem = ConfigItem.builder()
             .material(Material.RED_STAINED_GLASS_PANE)
             .name("<red>Cancel")
-            .build()
-            .toItemStack();
+            .build();
 
     public List<Integer> noSlots = List.of(15);
 

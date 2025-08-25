@@ -22,15 +22,15 @@ public class ConfirmInventory {
         Inventory inventory = holder.getInventory();
 
         if (this.config.confirm.cloneItem) {
-            inventory.setItem(this.config.confirm.cloneItemSlot, voucher.item().clone());
+            inventory.setItem(this.config.confirm.cloneItemSlot, voucherItem.clone());
         }
 
         for (int slot : this.config.confirm.yesSlots) {
-            inventory.setItem(slot, this.config.confirm.yesItem);
+            inventory.setItem(slot, this.config.confirm.yesItem.toItemStack());
         }
 
         for (int slot : this.config.confirm.noSlots) {
-            inventory.setItem(slot, this.config.confirm.noItem);
+            inventory.setItem(slot, this.config.confirm.noItem.toItemStack());
         }
 
         player.openInventory(inventory);
